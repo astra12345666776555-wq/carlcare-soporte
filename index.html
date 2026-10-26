@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carlcare - Soporte y Diagnóstico Global</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        body {
+            background-color: #f4f5f7;
+            color: #333;
+            padding-bottom: 70px;
+        }
+        .header {
+            background: white;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .search-container { position: relative; width: 100%; }
+        .search-bar {
+            background: #f0f2f5; width: 100%; padding: 10px 15px; border-radius: 20px;
+            color: #333; font-size: 13px; border: 1px solid #dcdfe6; outline: none;
+        }
+        #search-loading {
+            display: none; position: absolute; right: 15px; top: 50%; transform: translateY(-50%);
+            font-size: 12px; color: #0052d4; font-weight: bold;
+        }
+
+        .banner {
+            background: linear-gradient(135deg, #0052d4, #4364f7, #6fb1fc);
+            color: white; margin: 15px; padding: 20px; border-radius: 12px; text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 82, 212, 0.2);
+        }
+        .banner h1 { font-size: 20px; margin-bottom: 5px; }
+        .banner p { font-size: 11px; opacity: 0.9; }
+
+        .grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 15px; margin-bottom: 20px;
+        }
+        .grid-item {
+            background: white; padding: 12px 8px; border-radius: 10px; text-align: center;
+            font-size: 11px; color: #444; box-shadow: 0 1px 3px rgba(0,0,0,0.02); cursor: pointer; font-weight: 500;
+        }
+        .grid-icon { font-size: 20px; margin-bottom: 5px; }
+
+        .long-scroll-section {
+            background: white; margin: 15px; padding: 18px; border-radius: 12px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03); font-size: 12px; color: #555; line-height: 1.5;
+        }
+        .long-scroll-section h3 { color: #222; margin-bottom: 8px; font-size: 14px; }
+
+        .section-title { padding: 0 15px; font-size: 15px; font-weight: bold; margin-bottom: 10px; color: #222; }
+        
+        /* Tarjeta de Evaluador AnTuTu Falso */
+        .antutu-card {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            color: white; margin: 0 15px 20px 15px; padding: 18px; border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); text-align: center; cursor: pointer;
+        }
+        .antutu-card h3 { font-size: 15px; margin-bottom: 5px; color: #38bdf8; }
+        .antutu-card p { font-size: 11px; color: #94a3b8; margin-bottom: 12px; }
+        .btn-antutu {
+            background: #3b82f6; color: white; border: none; padding: 8px 15px;
+            border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer;
+        }
+
+        .device-card {
+            background: white; margin: 0 15px 20px 15px; padding: 15px; border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 15px;
+        }
+        .device-img {
+            width: 55px; height: 65px; background: #eef2f7; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center; font-size: 24px;
+        }
+        .device-info h3 { font-size: 15px; color: #111; margin-bottom: 4px; }
+        .device-info p { font-size: 11px; color: #e67e22; font-weight: bold; }
+
+        .action-container { padding: 0 15px; margin-bottom: 30px; }
+        .btn-clean-main {
+            background: #0052d4; color: white; width: 100%; padding: 15px; border: none;
+            border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 82, 212, 0.3);
+        }
+
+        /* Tarjetas de Descubrir (Scroll Enorme)[span_1](start_span)[span_1](end_span) */
+        .discover-card {
+            background: white; margin: 15px; border-radius: 12px; overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05); padding-bottom: 10px;
+        }
+        .discover-header { padding: 12px; font-size: 13px; font-weight: bold; color: #222; border-bottom: 1px solid #eee; }
+        .discover-body { padding: 12px; font-size: 12px; color: #555; line-height: 1.4; }
+        .discover-footer { display: flex; justify-content: space-around; padding: 8px 0; border-top: 1px solid #f0f2f5; font-size: 11px; color: #666; }
+
+        /* Barra Inferior */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; width: 100%; background: white;
+            display: flex; justify-content: space-around; padding: 8px 0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.08); z-index: 100;
+        }
+        .nav-item { text-align: center; font-size: 10px; color: #777; cursor: pointer; flex: 1; }
+        .nav-item.active { color: #0052d4; font-weight: bold; }
+        .nav-icon { font-size: 18px; margin-bottom: 2px; }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Aviso de Cookies */
+        #cookie-banner {
+            position: fixed; bottom: 55px; left: 0; width: 100%; background: #1e293b; color: white;
+            padding: 15px; z-index: 990; display: flex; flex-direction: column; gap: 10px; font-size: 12px;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.2);
+        }
+        .cookie-btns { display: flex; gap: 10px; }
+        .btn-cookie-accept { background: #3b82f6; color: white; border: none; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; flex: 1; }
+        .btn-cookie-config { background: #475569; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; }
+
+        #global-spinner-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: none; justify-content: center; align-items: center; z-index: 998;
+        }
+        .spinner-box { background: white; padding: 20px 30px; border-radius: 10px; text-align: center; font-size: 13px; color: #333; font-weight: bold; }
+
+        #analyzing-screen { display: none; background: white; margin: 15px; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); text-align: center; }
+        .analyzing-spinner { font-size: 45px; margin-bottom: 10px; animation: spin 1.5s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        #threat-alert-screen {
+            display: none; background: white; margin: 15px; padding: 20px; border-radius: 12px; border: 2px solid #e53e3e; box-shadow: 0 4px 15px rgba(229, 62, 62, 0.2); animation: shake 0.4s ease-in-out;
+        }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
+        .alert-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; color: #c53030; font-weight: bold; font-size: 16px; }
+        .alert-body { font-size: 12px; color: #444; line-height: 1.6; margin-bottom: 15px; text-align: left; }
+        .malware-list { background: #fff5f5; border-left: 3px solid #e53e3e; padding: 10px; margin: 10px 0; font-family: monospace; font-size: 11px; color: #c53030; text-align: left; }
+        .risk-box { background: #fffaf0; border: 1px solid #ecc94b; padding: 10px; border-radius: 6px; font-size: 11px; color: #744210; margin-bottom: 15px; text-align: left; }
+        .btn-malicious { background: #e53e3e; color: white; width: 100%; padding: 14px; border: none; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; }
+
+        .sub-screen { display: none; background: white; margin: 15px; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: center; }
+        .sub-screen h3 { margin-bottom: 12px; color: #0052d4; font-size: 16px; text-align: left; border-bottom: 1px solid #eee; padding-bottom: 8px; }
+        .sub-screen p { font-size: 12px; color: #555; margin-bottom: 15px; line-height: 1.6; text-align: left; }
+        .btn-back { background: #718096; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 13px; width: 100%; }
+
+        #mega-loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.95); display: none; justify-content: center; align-items: center; z-index: 999; padding: 20px; }
+        .loading-card { background: #1e293b; width: 100%; max-width: 340px; padding: 30px 20px; border-radius: 16px; text-align: center; color: white; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .loading-spinner { font-size: 40px; margin-bottom: 15px; animation: spin 1.5s linear infinite; }
+        .progress-bar-bg { width: 100%; height: 10px; background: #334155; border-radius: 5px; overflow: hidden; margin: 15px 0 10px 0; }
+        .progress-bar-fill { width: 0%; height: 100%; background: #3b82f6; transition: width 0.3s ease; }
+        .loading-console { font-family: monospace; font-size: 11px; color: #94a3b8; height: 35px; overflow: hidden; text-align: left; background: #0f172a; padding: 8px; border-radius: 6px; margin-top: 10px; }
+
+        #prank-final-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
+        .prank-box { background: white; width: 100%; max-width: 320px; padding: 30px; border-radius: 16px; text-align: center; animation: popUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes popUp { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div id="cookie-banner">
+        <span>🍪 Este sitio web utiliza cookies técnicas y de análisis de rendimiento para garantizar la mejor experiencia de navegación. Al continuar, acepta nuestras políticas.</span>
+        <div class="cookie-btns">
+            <button class="btn-cookie-accept" onclick="aceptarCookies()">Aceptar todas</button>
+            <button class="btn-cookie-config" onclick="aceptarCookies()">Configurar</button>
+        </div>
+    </div>
+
+    <div id="global-spinner-overlay">
+        <div class="spinner-box">
+            <div style="font-size: 24px; margin-bottom: 8px;">⏳</div>
+            Conectando con el servidor oficial...
+        </div>
+    </div>
+
+    <!-- PESTAÑA 1: INICIO -->
+    <div id="tab-inicio" class="tab-content active">
+        <div class="header">
+            <div class="search-container">
+                <input type="text" class="search-bar" id="search-input" placeholder="🔍 Buscar diagnóstico, rendimiento, troyanos..." onkeydown="manejarBusqueda(event)">
+                <span id="search-loading">Buscando...</span>
+            </div>
+        </div>
+
+        <div class="banner">
+            <h1>Yes! We Care</h1>
+            <p>Monitoreo Oficial de Rendimiento y Salud de Hardware</p>
+        </div>
+
+        <div class="grid">
+            <div class="grid-item" onclick="simularDemora('rendimiento')"><div class="grid-icon">⚡</div>Analizar Rendimiento</div>
+            <div class="grid-item" onclick="simularDemora('vida')"><div class="grid-icon">🔋</div>Vida útil de mi teléfono</div>
+            <div class="grid-item" onclick="simularDemora('Garantía')"><div class="grid-icon">🛡️</div>Garantía Global</div>
+            <div class="grid-item" onclick="simularDemora('Proceso')"><div class="grid-icon">📋</div>Proceso de Núcleos</div>
+            <div class="grid-item" onclick="simularDemora('Detección')"><div class="grid-icon">🔍</div>Detección de Red</div>
+            <div class="grid-item" onclick="simularDemora('Cupones')"><div class="grid-icon">🎟️</div>Mis Cupones</div>
+        </div>
+
+        <div class="long-scroll-section">
+            <h3>Informe Técnico de Rendimiento Global 2026</h3>
+            <p>Los algoritmos de supervisión autónoma evalúan constantemente la frecuencia de reloj del procesador, la temperatura interna y la estabilidad de la memoria caché para evitar cierres inesperados de aplicaciones pesadas bajo normativas ISO-9001.</p>
+        </div>
+
+        <!-- TARJETA NUEVA: CALIFICADOR DE TELÉFONO TIPO ANTUTU & JUEGOS -->
+        <div class="antutu-card" onclick="simularDemora('antutu')">
+            <h3>🚀 Evaluador AnTuTu Benchmark & Gaming</h3>
+            <p>Mide los puntos de rendimiento gráfico y recibe recomendaciones de juegos pesados compatibles con tu terminal.</p>
+            <button class="btn-antutu">CALCULAR PUNTUACIÓN</button>
+        </div>
+
+        <div class="section-title">Mi dispositivo</div>
+        <div class="device-card">
+            <div class="device-img">📱</div>
+            <div class="device-info">
+                <h3 id="device-name">Cargando modelo...</h3>
+                <p>⚠️ Alerta de rendimiento inestable</p>
+            </div>
+        </div>
+
+        <div class="action-container">
+            <button class="btn-clean-main" onclick="reproducirClick(); iniciarAnalisisDispositivo()">LIMPIAR DISPOSITIVO</button>
+        </div>
+
+        <div id="analyzing-screen">
+            <div class="analyzing-spinner">🔍</div>
+            <h3 style="font-size: 15px; color: #0052d4; margin-bottom: 5px;">Analizando dispositivos...</h3>
+            <p style="font-size: 12px; color: #666;" id="analyzing-status">Escaneando particiones del kernel...</p>
+        </div>
+
+        <div id="threat-alert-screen">
+            <div class="alert-header">
+                <span>🚨</span> ¡AMENAZAS Y ARCHIVOS MALICIOSOS DETECTADOS!
+            </div>
+            <div class="alert-body">
+                Se han encontrado anomalías graves en los directorios internos de su <b id="device-alert-name">Dispositivo</b>. El motor de seguridad local ha aislado los siguientes archivos infectados:
+                
+                <div class="malware-list">
+                    ❌ /system/bin/root_hook_v2.so (Troyano de Control Remoto)<br>
+                    ❌ /data/user/0/com.cache.ads/inject.dex (Adware Espía)<br>
+                    ❌ /firmware/kernel/core_patch.bin (Modificación no autorizada)
+                </div>
+
+                <div class="risk-box">
+                    <b>⚠️ Nivel de Riesgo: EXTREMO / CRÍTICO</b><br>
+                    • Exfiltración activa de contraseñas, fotos y registros de chat.<br>
+                    • Posible sobrecalentamiento y daño permanente de la placa base por bucles de procesamiento malicioso.<br>
+                    • Pérdida total de datos en las próximas 24 horas si no se purga el sistema.
+                </div>
+            </div>
+            <button class="btn-malicious" onclick="reproducirAlarmaError(); iniciarMegaCarga()">LIMPIAR OBJETIVOS MALICIOSOS</button>
+        </div>
+    </div>
+
+    <!-- PESTAÑA 2: UBICACIÓN -->
+    <div id="tab-ubicacion" class="tab-content">
+        <div style="padding: 30px 20px; text-align: center;">
+            <div style="font-size: 50px; margin-bottom: 10px;">🛸</div>
+            <h3 style="color: #333; font-size: 16px; margin-bottom: 8px;">Lo sentimos, no hay centros de servicio cerca de usted</h3>
+            <p style="font-size: 13px; color: #666; margin-bottom: 15px;">¿Necesita más ayuda? Por favor contáctenos.</p>
+            <p style="font-size: 13px; color: #0052d4; font-weight: bold; margin-bottom: 5px;">Tel: +57-3227702775</p>
+            <span style="font-size: 13px; color: #0052d4; text-decoration: underline; cursor: pointer;">Contacto online</span>
+        </div>
+    </div>
+
+    <!-- PESTAÑA 3: DESCUBRIR (SCROLL ENORME CON LIKES Y COMENTARIOS VARIADOS)[span_2](start_span)[span_2](end_span) -->
+    <div id="tab-descubrir" class="tab-content">
+        <div class="discover-card">
+            <div class="discover-header">🛠️ Avoid Repair Mistakes</div>
+            <div class="discover-body">Avoid common pitfalls when dealing with unknown providers. Check the limited warranty guidelines before servicing your device.</div>
+            <div class="discover-footer"><span>👤 Carlcare</span><span>👍 3.4k</span><span>💬 850</span></div>
+        </div>
+
+        <div class="discover-card">
+            <div class="discover-header">🔥 Phone Always Heating Up or Back Swollen?</div>
+            <div class="discover-body">Discover what might be wrong when your battery starts expanding or your processor overheats during intense gaming sessions.</div>
+            <div class="discover-footer"><span>👤 Carlcare</span><span>👍 1.2k</span><span>💬 412</span></div>
+        </div>
+
+        <div class="discover-card">
+            <div class="discover-header">⭐ Share Your Story With Carlcare</div>
+            <div class="discover-body">Nice phone repairs, very customer-centric engineers you have here. Rate your experience and get rewards!</div>
+            <div class="discover-footer"><span>👤 Carlcare</span><span>👍 999+</span><span>💬 305</span></div>
+        </div>
+
+        <div class="discover-card">
+            <div class="discover-header">⚡ How to Boost Gaming FPS in 2026</div>
+            <div class="discover-body">Learn the best optimization tricks to squeeze extra performance out of your chipset without risking hardware damage.</div>
+            <div class="discover-footer"><span>👤 TechMaster</span><span>👍 4.8k</span><span>💬 1.5k</span></div>
+        </div>
+
+        <div class="discover-card">
+            <div class="discover-header">🔋 Battery Life Myths Busted</div>
+            <div class="discover-body">Does overnight charging really destroy your lithium cells? Read our exhaustive laboratory study to find out the truth.</div>
+            <div class="discover-footer"><span>👤 BatteryLab</span><span>👍 2.9k</span><span>💬 760</span></div>
+        </div>
+
+        <div class="discover-card">
+            <div class="discover-header">🛡️ Screen Protection Guide: TPU vs Tempered Glass</div>
+            <div class="discover-body">Which protector actually absorbs impact better during accidental drops? Expert comparison review.</div>
+            <div class="discover-footer"><span>👤 Carlcare</span><span>👍 1.8k</span><span>💬 520</span></div>
+        </div>
+    </div>
+
+    <!-- PESTAÑA 4: PERFIL -->
+    <div id="tab-perfil" class="tab-content">
+        <div style="background: white; margin: 15px; padding: 25px; border-radius: 12px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
+            <div style="width: 60px; height: 60px; background: #e2e8f0; border-radius: 50%; margin: 0 auto 12px auto; display: flex; align-items: center; justify-content: center; font-size: 30px;">👤</div>
+            <h3 style="font-size: 15px; color: #111; margin-bottom: 5px;">¡Hola, bienvenido!</h3>
+            <p style="font-size: 12px; color: #718096; margin-bottom: 20px;">Inicia sesión para ver tus pedidos, cupones y garantía.</p>
+            <button style="background: #0052d4; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; width: 100%; cursor: pointer; font-size: 14px;" onclick="simularDemora('login')">Iniciar Sesión / Registrarse</button>
+        </div>
+
+        <div style="background: white; margin: 0 15px; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
+            <div style="padding: 15px; border-bottom: 1px solid #f0f2f5; font-size: 13px; display: flex; justify-content: space-between;" onclick="simularDemora('Garantía')"><span>🛡️ Consultar Tarjeta de Garantía</span> <span>></span></div>
+            <div style="padding: 15px; font-size: 13px; display: flex; justify-content: space-between;" onclick="simularDemora('Cupones')"><span>🎟️ Ver Cupones Disponibles</span> <span>></span></div>
+        </div>
+    </div>
+
+    <!-- Pantalla Secundaria Detallada -->
+    <div id="sub-screen-view" class="sub-screen">
+        <h3 id="sub-title">Título Formal</h3>
+        <p id="sub-text">Cargando informe oficial detallado...</p>
+        <button class="btn-back" onclick="reproducirClick(); cerrarPantalla()">Regresar al Panel Principal</button>
+    </div>
+
+    <!-- Barra de Navegación Inferior -->
+    <div class="bottom-nav">
+        <div class="nav-item active" id="nav-inicio" onclick="cambiarTab('inicio')">
+            <div class="nav-icon">🏠</div>Inicio
+        </div>
+        <div class="nav-item" id="nav-ubicacion" onclick="cambiarTab('ubicacion')">
+            <div class="nav-icon">📍</div>Ubicación
+        </div>
+        <div class="nav-item" id="nav-descubrir" onclick="cambiarTab('descubrir')">
+            <div class="nav-icon">🔍</div>Descubrir
+        </div>
+        <div class="nav-item" id="nav-perfil" onclick="cambiarTab('perfil')">
+            <div class="nav-icon">👤</div>Perfil
+        </div>
+    </div>
+
+    <!-- Mega Pantalla de Carga -->
+    <div id="mega-loading-overlay">
+        <div class="loading-card">
+            <div class="loading-spinner">⚙️</div>
+            <h3 style="font-size: 16px; margin-bottom: 5px;">Depurando Amenazas...</h3>
+            <p style="font-size: 11px; color: #94a3b8;" id="loading-percentage">Progreso: 0%</p>
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="progress-fill"></div>
+            </div>
+            <div class="loading-console" id="loading-console-text">Iniciando protocolo de limpieza...</div>
+        </div>
+    </div>
+
+    <!-- Troleo Final -->
+    <div id="prank-final-screen">
+        <div class="prank-box">
+            <div style="font-size: 60px; margin-bottom: 10px;">😂</div>
+            <div style="font-size: 20px; font-weight: bold; color: #27ae60; margin-bottom: 10px;">¡CAÍSTE JA JA JA!</div>
+            <div style="font-size: 13px; color: #555; margin-bottom: 20px;" id="prank-msg">Tu celular está impecable. ¡Broma de nivel maestro conseguida! 🚀</div>
+            <button style="background: #27ae60; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; width: 100%; cursor: pointer;" onclick="location.reload()">Volver a trolear</button>
+        </div>
+    </div>
+
+    <script>
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function reproducirClick() {
+            if (audioCtx.state === 'suspended') { audioCtx.resume(); }
+            let osc = audioCtx.createOscillator();
+            let gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(550, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.08);
+        }
+
+        function reproducirAlarmaError() {
+            if (audioCtx.state === 'suspended') { audioCtx.resume(); }
+            let now = audioCtx.currentTime;
+            let osc = audioCtx.createOscillator();
+            let gain = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(380, now);
+            osc.frequency.setValueAtTime(190, now + 0.15);
+            gain.gain.setValueAtTime(0.12, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.35);
+        }
+
+        function aceptarCookies() {
+            reproducirClick();
+            document.getElementById("cookie-banner").style.display = "none";
+        }
+
+        function cambiarTab(tab) {
+            reproducirClick();
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById('tab-' + tab).classList.add('active');
+            document.getElementById('nav-' + tab).classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
+        function detectarCelular() {
+            const ua = navigator.userAgent;
+            let dispositivo = "Dispositivo Android";
+            let match = ua.match(/\b(Infinix|TECNO|Xiaomi|Redmi|Samsung|Moto|SM-|CPH|V2|Infinix X\w+)\s+([^;\)]+)/i);
+            if (match) {
+                dispositivo = match[0];
+            } else if (/iPhone/i.test(ua)) {
+                dispositivo = "Apple iPhone";
+            } else {
+                dispositivo = "Infinix Hot 60 Pro";
+            }
+            document.getElementById("device-name").innerText = dispositivo;
+            document.getElementById("device-alert-name").innerText = dispositivo;
+            return dispositivo;
+        }
+
+        let miCelular = detectarCelular();
+
+        function simularDemora(tipo) {
+            reproducirClick();
+            document.getElementById("global-spinner-overlay").style.display = "flex";
+            setTimeout(() => {
+                document.getElementById("global-spinner-overlay").style.display = "none";
+                abrirPantalla(tipo);
+            }, 1200);
+        }
+
+        function abrirPantalla(tipo) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById("sub-screen-view").style.display = "block";
+            let titulo = document.getElementById("sub-title");
+            let texto = document.getElementById("sub-text");
+
+            if(tipo === 'rendimiento') {
+                titulo.innerText = "⚡ Informe Técnico Detallado: Rendimiento de CPU y RAM";
+                texto.innerHTML = `<b>1. Estado del Procesador (SoC):</b><br>• Arquitectura: Octa-core de alto rendimiento.<br>• Frecuencia actual de los núcleos: 2.2 GHz estabilizados.<br>• Tasa de estrangulamiento térmico: 0% (Sin pérdida de potencia).<br><br><b>2. Memoria Caché y RAM:</b><br>• Memoria asignada a procesos críticos: 3.4 GB.<br>• Margen libre de holgura para multitarea: Óptimo.<br><br><b>Conclusión:</b> El hardware de su <b>${miCelular}</b> opera bajo umbrales normales de fábrica.`;
+            } else if(tipo === 'vida') {
+                titulo.innerText = "🔋 Auditoría de Salud y Vida Útil de la Batería";
+                texto.innerHTML = `<b>1. Capacidad Actual de las Celdas:</b><br>• Salud estimada del acumulador: 92% respecto a su estado de fábrica.<br>• Voltaje nominal de celda: 4.35V (Estable).<br><br><b>2. Historial de Carga y Ciclos:</b><br>• Conteo total de ciclos completados: 214 ciclos.<br>• Temperatura media de carga: 28.1°C.<br><br><b>Proyección:</b> Estimada en 3.5 a 4 años adicionales cuidando el cargador del <b>${miCelular}</b>.`;
+            } else if(tipo === 'Garantía') {
+                titulo.innerText = "🛡️ Certificado de Cobertura y Garantía Global";
+                texto.innerHTML = `<b>1. Registro de Validez:</b><br>• El dispositivo <b>${miCelular}</b> cuenta con registro activo en la base de datos central de soporte técnico.<br>• Estado: Vigente contra defectos de ensamblaje.<br><br><b>2. Exclusiones:</b><br>• No aplica en caso de daños por humedad directa o alteraciones root no autorizadas.`;
+            } else if(tipo === 'Proceso') {
+                titulo.innerText = "📋 Monitoreo de Procesos en Segundo Plano";
+                texto.innerHTML = `<b>1. Hilos de Ejecución Activos:</b><br>• Servicios de red sincronizados: 42 procesos seguros.<br>• Uso de recursos del kernel: Mínimo y eficiente.<br><br><b>Informe:</b> Sin anomalías ni bucles anormales en el terminal.`;
+            } else if(tipo === 'Detección') {
+                titulo.innerText = "🔍 Módulo de Detección y Enlaces de Red";
+                texto.innerHTML = `<b>1. Análisis de Conectividad:</b><br>• Protocolos de cifrado Wi-Fi y datos: WPA3 / 5G Activos.<br>• Verificación de paquetes: Sin redirecciones DNS sospechosas.<br><br><b>Estado:</b> Conexión segura validada.`;
+            } else if(tipo === 'Cupones') {
+                titulo.innerText = "🎟️ Cupones y Beneficios de Fidelización";
+                texto.innerHTML = `<b>1. Promociones Disponibles:</b><br>• 1x Cupón de 20% de descuento aplicable en mantenimientos preventivos o limpieza ultrasónica de puertos para el modelo <b>${miCelular}</b>.`;
+            } else if(tipo === 'antutu') {
+                let puntajeRandom = Math.floor(Math.random() * (520000 - 380000 + 1)) + 380000;
+                titulo.innerText = "🚀 Resultado Oficial AnTuTu Benchmark";
+                texto.innerHTML = `<b>Modelo Analizado:</b> ${miCelular}<br><br>` +
+                                  `🏆 <b>Puntuación Total Obtenida:</b> <span style="color:#0052d4; font-size:16px;">${puntajeRandom} pts</span><br>` +
+                                  `• CPU Score: 142,300 pts<br>` +
+                                  `• GPU Score: 156,800 pts<br>` +
+                                  `• Memoria UX: 89,200 pts<br><br>` +
+                                  `🎮 <b>Juegos Recomendados para este rendimiento:</b><br>` +
+                                  `1. Free Fire / Free Fire Max (Gráficos Ultra - 60 FPS estables)<br>` +
+                                  `2. Call of Duty Mobile (Gráficos Medios/Altos)<br>` +
+                                  `3. Mobile Legends: Bang Bang (Alta tasa de refresco)`;
+            } else if(tipo === 'login') {
+                titulo.innerText = "🔐 Inicio de Sesión de Usuario";
+                texto.innerHTML = `<b>Portal de Registro Global Carlcare</b><br><br>` +
+                                  `Ingrese su número de teléfono o correo electrónico registrado para sincronizar su <b>${miCelular}</b> con la nube de servicios técnicos.<br><br>` +
+                                  `<input type="text" placeholder="Correo o Teléfono" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px;"><br>` +
+                                  `<button style="background:#0052d4; color:white; border:none; padding:10px; width:100%; border-radius:5px; font-weight:bold;" onclick="alert('Conectando con servidores de autenticación...')">Continuar</button>`;
+            }
+        }
+
+        function cerrarPantalla() {
+            document.getElementById("sub-screen-view").style.display = "none";
+            document.getElementById('tab-inicio').classList.add('active');
+        }
+
+        function manejarBusqueda(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                document.getElementById("search-loading").style.display = "block";
+                document.getElementById("search-input").disabled = true;
+                setTimeout(() => {
+                    document.getElementById("search-loading").innerText = "Sin resultados en la red...";
+                }, 3000);
+            }
+        }
+
+        function iniciarAnalisisDispositivo() {
+            const btnMain = document.querySelector(".action-container");
+            btnMain.style.display = "none";
+            
+            const analyzingScreen = document.getElementById("analyzing-screen");
+            analyzingScreen.style.display = "block";
+            analyzingScreen.scrollIntoView({ behavior: 'smooth' });
+
+            let estados = [
+                "Escaneando particiones del kernel...",
+                "Verificando directorios raíz de aplicaciones...",
+                "Buscando firmas de troyanos y scripts ocultos...",
+                "¡Análisis finalizado con alertas críticas!"
+            ];
+
+            let i = 0;
+            let intervalo = setInterval(() => {
+                i++;
+                if (i < estados.length) {
+                    document.getElementById("analyzing-status").innerText = estados[i];
+                } else {
+                    clearInterval(intervalo);
+                    analyzingScreen.style.display = "none";
+                    document.getElementById("threat-alert-screen").style.display = "block";
+                    document.getElementById("threat-alert-screen").scrollIntoView({ behavior: 'smooth' });
+                }
+            }, 1000);
+        }
+
+        function iniciarMegaCarga() {
+            document.getElementById("mega-loading-overlay").style.display = "flex";
+            
+            const fill = document.getElementById("progress-fill");
+            const percentageText = document.getElementById("loading-percentage");
+            const consoleText = document.getElementById("loading-console-text");
+
+            let logs = [
+                "Borrando caché de /system/bin...",
+                "Eliminando troyano root_hook_v2.so...",
+                "Restaurando registros de kernel...",
+                "Purgando paquetes maliciosos externos...",
+                "¡Optimización de seguridad finalizada!"
+            ];
+
+            let progreso = 0;
+            let logIndex = 0;
+
+            let intervalo = setInterval(() => {
+                progreso += 2;
+                if (progreso <= 100) {
+                    fill.style.width = progreso + "%";
+                    percentageText.innerText = `Progreso: ${progreso}%`;
+
+                    if (progreso % 20 === 0 && logIndex < logs.length) {
+                        consoleText.innerText = logs[logIndex];
+                        logIndex++;
+                    }
+                } else {
+                    clearInterval(intervalo);
+                    document.getElementById("mega-loading-overlay").style.display = "none";
+                    document.getElementById("prank-msg").innerHTML = 
+                        `Tu <b>${miCelular}</b> está 100% sano y salvo. ¡La broma con AnTuTu, feed largo y retrasos de carga quedó de nivel Dios! 🚀`;
+                    document.getElementById("prank-final-screen").style.display = "flex";
+                }
+            }, 60);
+        }
+    </script>
+</body>
+</html>
